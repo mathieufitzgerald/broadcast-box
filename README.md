@@ -1,5 +1,7 @@
 # Broadcast Box
 
+This version is modified for custom endpoints using CORS
+
 [![License][license-image]][license-url]
 [![Discord][discord-image]][discord-invite-url]
 
