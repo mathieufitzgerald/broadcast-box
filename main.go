@@ -91,6 +91,29 @@ func whipHandler(res http.ResponseWriter, r *http.Request) {
 	fmt.Fprint(res, answer)
 }
 
+func matHandler(res http.ResponseWriter, r *http.Request) {
+	// Skip Authorization check for the /mat endpoint
+	offer, err := io.ReadAll(r.Body)
+	if err != nil {
+		logHTTPError(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	// Use a default or static stream key since we are bypassing authorization
+	defaultStreamKey := "mat"
+
+	answer, err := webrtc.WHIP(string(offer), defaultStreamKey)
+	if err != nil {
+		logHTTPError(res, err.Error(), http.StatusBadRequest)
+		return
+	}
+
+	res.Header().Add("Location", "/mat")
+	res.Header().Add("Content-Type", "application/sdp")
+	res.WriteHeader(http.StatusCreated)
+	fmt.Fprint(res, answer)
+}
+
 func whepHandler(res http.ResponseWriter, req *http.Request) {
 	streamKeyHeader := req.Header.Get("Authorization")
 	if streamKeyHeader == "" {
@@ -272,6 +295,8 @@ func main() {
 	if os.Getenv("DISABLE_FRONTEND") == "" {
 		mux.Handle("/", indexHTMLWhenNotFound(http.Dir("./web/build")))
 	}
+	// CORS handler wrapping for the /mat endpoint without authorization checks
+	mux.HandleFunc("/mat", corsHandler(matHandler))
 	mux.HandleFunc("/api/whip", corsHandler(whipHandler))
 	mux.HandleFunc("/api/whep", corsHandler(whepHandler))
 	mux.HandleFunc("/api/sse/", corsHandler(whepServerSentEventsHandler))
