@@ -92,26 +92,8 @@ func whipHandler(res http.ResponseWriter, r *http.Request) {
 }
 
 func matHandler(res http.ResponseWriter, r *http.Request) {
-	// Skip Authorization check for the /mat endpoint
-	offer, err := io.ReadAll(r.Body)
-	if err != nil {
-		logHTTPError(res, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	// Use a default or static stream key since we are bypassing authorization
-	defaultStreamKey := "mat"
-
-	answer, err := webrtc.WHIP(string(offer), defaultStreamKey)
-	if err != nil {
-		logHTTPError(res, err.Error(), http.StatusBadRequest)
-		return
-	}
-
-	res.Header().Add("Location", "/mat")
-	res.Header().Add("Content-Type", "application/sdp")
-	res.WriteHeader(http.StatusCreated)
-	fmt.Fprint(res, answer)
+	// For now, this will reuse the whipHandler logic
+	whipHandler(res, r)
 }
 
 func whepHandler(res http.ResponseWriter, req *http.Request) {
